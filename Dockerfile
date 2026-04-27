@@ -3,8 +3,8 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
 WORKDIR /src
 COPY src/K8sSidecar/K8sSidecar.csproj ./K8sSidecar/
 RUN dotnet restore ./K8sSidecar/K8sSidecar.csproj
-COPY src/K8sSidecar/ ./K8sSidecar/
-RUN dotnet publish ./K8sSidecar/K8sSidecar.csproj -c Release -o /app/publish --no-restore
+COPY src/K8sSidecar/*.cs ./K8sSidecar/
+RUN dotnet publish ./K8sSidecar/K8sSidecar.csproj -c Release -o /app/publish
 
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/runtime:8.0-alpine
