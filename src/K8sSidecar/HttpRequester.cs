@@ -73,7 +73,9 @@ public sealed class HttpRequester
                 var (username, password) = FetchBasicAuthCredentials();
                 if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
                 {
-                    var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{username}:{password}"));
+                    // Use ASCII encoding for basic auth credentials (supports ascii, latin1, utf-8 style)
+                    var credBytes = Encoding.UTF8.GetBytes($"{username}:{password}");
+                    var credentials = Convert.ToBase64String(credBytes);
                     request.Headers.Authorization = new AuthenticationHeaderValue("Basic", credentials);
                 }
 

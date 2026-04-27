@@ -147,7 +147,6 @@ public class Program
             resourceService.WatchForChanges(config.ReqUrl, config.ReqMethod, requestPayload);
         }
 
-        healthServer.MarkReady(); // After successful initial LIST sync
         return 0;
     }
 }
