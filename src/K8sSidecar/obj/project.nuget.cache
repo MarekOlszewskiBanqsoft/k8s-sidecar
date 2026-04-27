@@ -1,0 +1,27 @@
+{
+  "version": 2,
+  "dgSpecHash": "+VlM+XoUwJc=",
+  "success": true,
+  "projectFilePath": "/home/runner/work/k8s-sidecar/k8s-sidecar/src/K8sSidecar/K8sSidecar.csproj",
+  "expectedPackageFiles": [
+    "/home/runner/.nuget/packages/fractions/7.3.0/fractions.7.3.0.nupkg.sha512",
+    "/home/runner/.nuget/packages/kubernetesclient/19.0.2/kubernetesclient.19.0.2.nupkg.sha512",
+    "/home/runner/.nuget/packages/microsoft.extensions.configuration/8.0.0/microsoft.extensions.configuration.8.0.0.nupkg.sha512",
+    "/home/runner/.nuget/packages/microsoft.extensions.configuration.abstractions/8.0.0/microsoft.extensions.configuration.abstractions.8.0.0.nupkg.sha512",
+    "/home/runner/.nuget/packages/microsoft.extensions.configuration.binder/8.0.2/microsoft.extensions.configuration.binder.8.0.2.nupkg.sha512",
+    "/home/runner/.nuget/packages/microsoft.extensions.dependencyinjection/8.0.1/microsoft.extensions.dependencyinjection.8.0.1.nupkg.sha512",
+    "/home/runner/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/8.0.2/microsoft.extensions.dependencyinjection.abstractions.8.0.2.nupkg.sha512",
+    "/home/runner/.nuget/packages/microsoft.extensions.logging/8.0.1/microsoft.extensions.logging.8.0.1.nupkg.sha512",
+    "/home/runner/.nuget/packages/microsoft.extensions.logging.abstractions/8.0.2/microsoft.extensions.logging.abstractions.8.0.2.nupkg.sha512",
+    "/home/runner/.nuget/packages/microsoft.extensions.logging.configuration/8.0.1/microsoft.extensions.logging.configuration.8.0.1.nupkg.sha512",
+    "/home/runner/.nuget/packages/microsoft.extensions.logging.console/8.0.1/microsoft.extensions.logging.console.8.0.1.nupkg.sha512",
+    "/home/runner/.nuget/packages/microsoft.extensions.options/8.0.2/microsoft.extensions.options.8.0.2.nupkg.sha512",
+    "/home/runner/.nuget/packages/microsoft.extensions.options.configurationextensions/8.0.0/microsoft.extensions.options.configurationextensions.8.0.0.nupkg.sha512",
+    "/home/runner/.nuget/packages/microsoft.extensions.primitives/8.0.0/microsoft.extensions.primitives.8.0.0.nupkg.sha512",
+    "/home/runner/.nuget/packages/polly/8.5.2/polly.8.5.2.nupkg.sha512",
+    "/home/runner/.nuget/packages/polly.core/8.5.2/polly.core.8.5.2.nupkg.sha512",
+    "/home/runner/.nuget/packages/system.text.json/8.0.5/system.text.json.8.0.5.nupkg.sha512",
+    "/home/runner/.nuget/packages/yamldotnet/16.3.0/yamldotnet.16.3.0.nupkg.sha512"
+  ],
+  "logs": []
+}
