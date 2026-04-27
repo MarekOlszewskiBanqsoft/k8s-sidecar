@@ -35,9 +35,7 @@ data:
   script.sh: |-
     #!/bin/sh
     touch /tmp/script_result
-  script.py: |-
-    #!/usr/bin/env python
-    print("Hello from python script!")
+    echo "Hello from shell script!"
 
 ---
 apiVersion: v1
@@ -70,7 +68,6 @@ spec:
       - name: REQ_PASSWORD
         value: "abcdefghijklmnopqrstuvwxyz"
       - name: REQ_BASIC_AUTH_ENCODING
-        # the python server we're using for the tests expects ascii encoding of basic auth credentials, hence we can't use non-ascii characters in the password or username
         value: "ascii"
       - name: LOG_LEVEL
         value: "DEBUG"
@@ -112,7 +109,6 @@ spec:
       - name: REQ_PASSWORD
         value: "abcdefghijklmnopqrstuvwxyz"
       - name: REQ_BASIC_AUTH_ENCODING
-        # the python server we're using for the tests expects ascii encoding of basic auth credentials, hence we can't use non-ascii characters in the password or username
         value: "ascii"
       - name: LOG_LEVEL
         value: "DEBUG"
@@ -141,7 +137,7 @@ spec:
 apiVersion: v1
 kind: Pod
 metadata:
-  name: sidecar-pythonscript
+  name: sidecar-shellscript
   namespace: default
 spec:
   serviceAccountName: sample-acc
@@ -152,8 +148,8 @@ spec:
         - name: shared-volume
           mountPath: /tmp/
         - name: script-volume
-          mountPath: /opt/script.py
-          subPath: script.py
+          mountPath: /opt/script.sh
+          subPath: script.sh
       env:
         - name: LABEL
           value: "findme"
@@ -162,7 +158,7 @@ spec:
         - name: RESOURCE
           value: both
         - name: SCRIPT
-          value: "/opt/script.py"
+          value: "/opt/script.sh"
         - name: LOG_LEVEL
           value: "DEBUG"
   volumes:
@@ -210,72 +206,9 @@ spec:
       defaultMode: 0777
 ---
 apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: logger-config
-  labels:
-    somelabel: "somesome"
-data:
-  log_conf.yaml: |-
-    version: 1
-    disable_existing_loggers: false
-
-    root:
-        level: DEBUG
-        handlers: [console]
-        
-    handlers:
-        console:
-            class: logging.StreamHandler
-            level: DEBUG
-            formatter: JSON
-
-    formatters:
-        JSON:
-            (): logger.JsonFormatter
-            format: '%(levelname)s %(message)s'
-            rename_fields: {
-                    "message": "msg", 
-                    "levelname": "level"
-                    }
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: logger-config-tofile
-  labels:
-    somelabel: "somesome"
-data:
-  log_conf.yaml: |-
-      version: 1
-      disable_existing_loggers: false
-
-      root:
-          level: DEBUG
-          handlers: [console]
-
-      handlers:
-          console:
-              class: logging.handlers.RotatingFileHandler
-              level: DEBUG
-              formatter: JSON
-              filename: "/opt/logs/sidecar.log"
-              maxBytes: 2097152
-              backupCount: 3
-
-      formatters:
-          JSON:
-              (): logger.JsonFormatter
-              format: '%(levelname)s %(message)s'
-              rename_fields: {
-                      "message": "msg",
-                      "levelname": "level"
-                      }
----
-apiVersion: v1
 kind: Pod
 metadata:
-  name: sidecar-pythonscript-logfile
+  name: sidecar-shellscript-resource-name
   namespace: default
 spec:
   serviceAccountName: sample-acc
@@ -286,51 +219,8 @@ spec:
         - name: shared-volume
           mountPath: /tmp/
         - name: script-volume
-          mountPath: /opt/script.py
-          subPath: script.py
-        - name: log-config
-          mountPath: /etc/k8s-sidecar
-      env:
-        - name: LABEL
-          value: "findme"
-        - name: FOLDER
-          value: /tmp/
-        - name: RESOURCE
-          value: both
-        - name: SCRIPT
-          value: "/opt/script.py"
-        - name: LOG_LEVEL
-          value: "DEBUG"
-        - name: LOG_CONFIG
-          value: "/etc/k8s-sidecar/log_conf.yaml"
-  volumes:
-    - name: shared-volume
-      emptyDir: { }
-    - name: script-volume
-      configMap:
-        name: script-configmap
-        defaultMode: 0777
-    - name: log-config
-      configMap:
-        name: logger-config
-        defaultMode: 0777
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: sidecar-pythonscript-resource-name
-  namespace: default
-spec:
-  serviceAccountName: sample-acc
-  containers:
-    - name: sidecar
-      image: kiwigrid/k8s-sidecar:testing
-      volumeMounts:
-        - name: shared-volume
-          mountPath: /tmp/
-        - name: script-volume
-          mountPath: /opt/script.py
-          subPath: script.py
+          mountPath: /opt/script.sh
+          subPath: script.sh
       env:
         - name: LABEL
           value: "findme"
@@ -341,7 +231,7 @@ spec:
         - name: RESOURCE_NAME
           value: configmap/sample-configmap,secret/sample-secret-binary
         - name: SCRIPT
-          value: "/opt/script.py"
+          value: "/opt/script.sh"
         - name: LOG_LEVEL
           value: "DEBUG"
   volumes:
@@ -350,53 +240,6 @@ spec:
     - name: script-volume
       configMap:
         name: script-configmap
-        defaultMode: 0777
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: sidecar-logtofile-pythonscript
-  namespace: default
-spec:
-  serviceAccountName: sample-acc
-  containers:
-    - name: sidecar
-      image: kiwigrid/k8s-sidecar:testing
-      volumeMounts:
-        - name: shared-volume
-          mountPath: /tmp/
-        - name: script-volume
-          mountPath: /opt/script.py
-          subPath: script.py
-        - name: log-config
-          mountPath: /etc/k8s-sidecar
-        - name: logdir
-          mountPath: /opt/logs
-      env:
-        - name: LABEL
-          value: "findme"
-        - name: FOLDER
-          value: /tmp/
-        - name: RESOURCE
-          value: both
-        - name: SCRIPT
-          value: "/opt/script.py"
-        - name: LOG_LEVEL
-          value: "DEBUG"
-        - name: LOG_CONFIG
-          value: "/etc/k8s-sidecar/log_conf.yaml"
-  volumes:
-    - name: shared-volume
-      emptyDir: { }
-    - name: logdir
-      emptyDir: { }
-    - name: script-volume
-      configMap:
-        name: script-configmap
-        defaultMode: 0777
-    - name: log-config
-      configMap:
-        name: logger-config-tofile
         defaultMode: 0777
 ---
 apiVersion: v1
@@ -436,7 +279,7 @@ spec:
   containers:
   - name: sidecar
     image: kiwigrid/k8s-sidecar:testing
-    command: [ "python" , "-u" , "-m", "sidecar" , "--req-username-file=/opt/creds/username" , "--req-password-file=/opt/creds/password"]
+    command: [ "dotnet", "K8sSidecar.dll", "--req-username-file=/opt/creds/username", "--req-password-file=/opt/creds/password"]
     imagePullPolicy: IfNotPresent
     volumeMounts:
     - name: auth-creds
@@ -456,7 +299,6 @@ spec:
       - name: SCRIPT
         value: "/opt/script.sh"
       - name: REQ_BASIC_AUTH_ENCODING
-        # the python server we're using for the tests expects ascii encoding of basic auth credentials, hence we can't use non-ascii characters in the password or username
         value: "ascii"
       - name: LOG_LEVEL
         value: "DEBUG"
