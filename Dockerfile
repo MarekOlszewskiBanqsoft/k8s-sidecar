@@ -14,3 +14,4 @@ COPY --from=build /app/publish .
 # https://kubernetes.io/docs/concepts/policy/pod-security-policy/#users-and-groups
 USER 65534:65534
 ENTRYPOINT ["dotnet", "K8sSidecar.dll"]
+
