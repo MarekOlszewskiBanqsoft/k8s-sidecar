@@ -88,6 +88,7 @@ public sealed class HttpRequester
                         request.Content = new StringContent(json, Encoding.UTF8, "application/json");
                     }
                     var response = _httpClient.Send(request);
+                    BufferResponse(response);
                     var responseText = ReadResponseContent(response);
                     _logger.LogInformation("{Payload} sent to {Url}. Response: {StatusCode} {Reason} {Body}",
                         payload, url, (int)response.StatusCode, response.ReasonPhrase, responseText);
@@ -97,6 +98,7 @@ public sealed class HttpRequester
                 {
                     request.Method = HttpMethod.Get;
                     var response = _httpClient.Send(request);
+                    BufferResponse(response);
                     var responseText = ReadResponseContent(response);
                     _logger.LogInformation("Request sent to {Url}. Response: {StatusCode} {Reason} {Body}",
                         url, (int)response.StatusCode, response.ReasonPhrase, responseText);
@@ -122,7 +124,8 @@ public sealed class HttpRequester
     public string ReadResponseText(HttpResponseMessage? response)
     {
         if (response == null) return string.Empty;
-        return ReadResponseContent(response);
+        var bytes = response.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult();
+        return Encoding.UTF8.GetString(bytes);
     }
 
     /// <summary>
@@ -131,17 +134,33 @@ public sealed class HttpRequester
     public byte[] ReadResponseBytes(HttpResponseMessage? response)
     {
         if (response == null) return Array.Empty<byte>();
-        using var stream = response.Content.ReadAsStream();
+        return response.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult();
+    }
+
+    /// <summary>
+    /// Buffer the response content into a ByteArrayContent so the stream can be read multiple times.
+    /// </summary>
+    private static void BufferResponse(HttpResponseMessage response)
+    {
+        var stream = response.Content.ReadAsStream();
         using var ms = new MemoryStream();
         stream.CopyTo(ms);
-        return ms.ToArray();
+        var bytes = ms.ToArray();
+
+        // Preserve headers from original content
+        var headers = response.Content.Headers;
+        var buffered = new ByteArrayContent(bytes);
+        foreach (var header in headers)
+        {
+            buffered.Headers.TryAddWithoutValidation(header.Key, header.Value);
+        }
+        response.Content = buffered;
     }
 
     private static string ReadResponseContent(HttpResponseMessage response)
     {
-        using var stream = response.Content.ReadAsStream();
-        using var reader = new StreamReader(stream);
-        return reader.ReadToEnd();
+        var bytes = response.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult();
+        return Encoding.UTF8.GetString(bytes);
     }
 
     private (string? username, string? password) FetchBasicAuthCredentials()
