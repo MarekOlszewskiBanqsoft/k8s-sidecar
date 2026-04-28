@@ -10,6 +10,9 @@ on:
       - 'src/**'
       - 'Dockerfile'
       - 'docker-bake.hcl'
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -57,7 +60,7 @@ jobs:
           files: |
             docker-bake.hcl
           set: |
-            k8s-sidecar.tags=ghcr.io/kiwigrid/k8s-sidecar:${{ steps.tagging.outputs.new_tag }}
+            k8s-sidecar.tags=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.tagging.outputs.new_tag }}
 
       - name: Build Changelog
         if: steps.tagging.outputs.part != '' && steps.tagging.outputs.part != 'none'

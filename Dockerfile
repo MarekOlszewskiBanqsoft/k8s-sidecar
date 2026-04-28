@@ -8,9 +8,6 @@ RUN dotnet publish ./K8sSidecar/K8sSidecar.csproj -c Release -o /app/publish
 
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/runtime:8.0-alpine
-LABEL org.opencontainers.image.source=https://github.com/kiwigrid/k8s-sidecar
-LABEL org.opencontainers.image.description="K8s sidecar image to collect configmaps and secrets as files"
-LABEL org.opencontainers.image.licenses=MIT
 WORKDIR /app
 COPY --from=build /app/publish .
 # Use the nobody user's numeric UID/GID to satisfy MustRunAsNonRoot PodSecurityPolicies
