@@ -142,7 +142,7 @@ public sealed class HttpRequester
     /// </summary>
     private static void BufferResponse(HttpResponseMessage response)
     {
-        var stream = response.Content.ReadAsStream();
+        using var stream = response.Content.ReadAsStream();
         using var ms = new MemoryStream();
         stream.CopyTo(ms);
         var bytes = ms.ToArray();
