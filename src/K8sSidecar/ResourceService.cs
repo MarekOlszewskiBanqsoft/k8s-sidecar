@@ -573,13 +573,17 @@ public sealed class ResourceService
             if (contentType == "binary" && dataContent is byte[] binaryContent)
             {
                 // Binary data from ConfigMap binaryData - already base64 decoded by K8s client
-                (filename, fileData) = GetFileDataAndName(dataKey, binaryContent, true);
+                var result = GetFileDataAndName(dataKey, binaryContent, true);
+                if (result == null) return false;
+                (filename, fileData) = result.Value;
             }
             else
             {
                 // Text data
                 var textContent = dataContent.ToString() ?? string.Empty;
-                (filename, fileData) = GetFileDataAndName(dataKey, textContent);
+                var result = GetFileDataAndName(dataKey, textContent);
+                if (result == null) return false;
+                (filename, fileData) = result.Value;
             }
 
             if (_config.UniqueFilenames)
@@ -609,7 +613,9 @@ public sealed class ResourceService
     {
         try
         {
-            var (filename, fileData) = GetFileDataAndName(dataKey, dataContent, true);
+            var result = GetFileDataAndName(dataKey, dataContent, true);
+            if (result == null) return false;
+            var (filename, fileData) = result.Value;
 
             if (_config.UniqueFilenames)
             {
@@ -632,12 +638,18 @@ public sealed class ResourceService
         }
     }
 
-    private (string filename, byte[] data) GetFileDataAndName(string fullFilename, string content)
+    private (string filename, byte[] data)? GetFileDataAndName(string fullFilename, string content)
     {
         if (fullFilename.EndsWith(".url"))
         {
             var filename = fullFilename[..^4];
             var response = _httpRequester.SendRequest(content, "GET", _config.Enable5xx);
+            if (response == null || !response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Failed to download URL {Url} for {Filename}: {Status}",
+                    content, filename, response?.StatusCode.ToString() ?? "null");
+                return null;
+            }
             var responseText = _httpRequester.ReadResponseText(response);
             return (filename, Encoding.UTF8.GetBytes(responseText));
         }
@@ -645,13 +657,19 @@ public sealed class ResourceService
         return (fullFilename, Encoding.UTF8.GetBytes(content));
     }
 
-    private (string filename, byte[] data) GetFileDataAndName(string fullFilename, byte[] content, bool isBinary)
+    private (string filename, byte[] data)? GetFileDataAndName(string fullFilename, byte[] content, bool isBinary)
     {
         if (fullFilename.EndsWith(".url"))
         {
             var filename = fullFilename[..^4];
             var url = Encoding.UTF8.GetString(content);
             var response = _httpRequester.SendRequest(url, "GET", _config.Enable5xx);
+            if (response == null || !response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Failed to download URL {Url} for {Filename}: {Status}",
+                    url, filename, response?.StatusCode.ToString() ?? "null");
+                return null;
+            }
             var responseBytes = _httpRequester.ReadResponseBytes(response);
             return (filename, responseBytes);
         }
