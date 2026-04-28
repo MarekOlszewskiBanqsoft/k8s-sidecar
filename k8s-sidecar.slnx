@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/K8sSidecar/K8sSidecar.csproj" />
+  </Folder>
+</Solution>
