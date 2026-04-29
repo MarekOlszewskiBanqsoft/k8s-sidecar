@@ -249,6 +249,8 @@ public sealed class ResourceService
     private void WatchResourceLoop(ManualResetEventSlim shutdownEvent, string resource, string ns,
         string? requestUrl, string? requestMethod, object? requestPayload)
     {
+        var errorCount = 0;
+        var errorLimit = 10;
         while (!shutdownEvent.IsSet)
         {
             try
@@ -262,6 +264,8 @@ public sealed class ResourceService
                 {
                     WatchResourceIterator(resource, ns, requestUrl, requestMethod, requestPayload);
                 }
+
+                errorCount = 0;
             }
             catch (k8s.Autorest.HttpOperationException ex) when (ex.Response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
             {
@@ -269,7 +273,12 @@ public sealed class ResourceService
             }
             catch (Exception ex)
             {
-                _logger.LogError("Exception when watching kubernetes: {Error}", ex.Message);
+                _logger.LogError(ex, "Exception when watching kubernetes: {Error}", ex.Message);
+                errorCount++;
+                if (errorCount > errorLimit)
+                {
+                    throw;
+                }
                 Thread.Sleep(_config.ErrorThrottleSleep * 1000);
             }
         }
