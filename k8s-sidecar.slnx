@@ -2,4 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/K8sSidecar/K8sSidecar.csproj" />
   </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/K8sSidecar.Tests/K8sSidecar.Tests.csproj" />
+  </Folder>
 </Solution>

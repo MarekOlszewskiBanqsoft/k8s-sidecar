@@ -271,6 +271,12 @@ public sealed class ResourceService
             {
                 throw; // Re-throw 500 errors
             }
+            catch (Exception ex) when (IsEndOfStreamException(ex))
+            {
+                _logger.LogWarning("Watch stream ended with no events (no matching {Resource} resources found in namespace '{Namespace}'). Retrying...",
+                    resource, ns);
+                Thread.Sleep(_config.ErrorThrottleSleep * 1000);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Exception when watching kubernetes: {Error}", ex.Message);
@@ -763,5 +769,37 @@ public sealed class ResourceService
             Data = s.Data != null ? new Dictionary<string, byte[]>(s.Data.ToDictionary(kvp => kvp.Key, kvp => (byte[])kvp.Value.Clone())) : null
         };
         return clone;
+    }
+
+    /// <summary>
+    /// Determines whether an exception is caused by an EndOfStreamException,
+    /// which occurs when no resources match the label selector and the watch
+    /// stream is empty.
+    /// </summary>
+    internal static bool IsEndOfStreamException(Exception ex)
+    {
+        return ContainsExceptionType<System.IO.EndOfStreamException>(ex);
+    }
+
+    private static bool ContainsExceptionType<T>(Exception? ex) where T : Exception
+    {
+        while (ex != null)
+        {
+            if (ex is T)
+                return true;
+
+            if (ex is AggregateException aggEx)
+            {
+                foreach (var inner in aggEx.InnerExceptions)
+                {
+                    if (ContainsExceptionType<T>(inner))
+                        return true;
+                }
+            }
+
+            ex = ex.InnerException;
+        }
+
+        return false;
     }
 }

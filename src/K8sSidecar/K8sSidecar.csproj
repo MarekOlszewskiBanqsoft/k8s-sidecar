@@ -12,6 +12,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="K8sSidecar.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="KubernetesClient" Version="19.0.2" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.1" />
